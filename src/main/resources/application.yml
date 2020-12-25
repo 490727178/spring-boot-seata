@@ -1,0 +1,105 @@
+spring:
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#    show-sql: false
+  application:
+    name: springbootseata
+  autoconfigure:
+    exclude: com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
+  datasource:
+    # 动态数据源配置
+    dynamic:
+      seata: true
+      primary: seata_order
+      druid: #以下是全局默认值，可以全局更改
+        initial-size: 0
+        max-active: 8
+        min-idle: 2
+        max-wait: -1
+        min-evictable-idle-time-millis: 30000
+        max-evictable-idle-time-millis: 30000
+        time-between-eviction-runs-millis: 0
+        validation-query: select 1
+        validation-query-timeout: -1
+        test-on-borrow: false
+        test-on-return: false
+        test-while-idle: true
+        pool-prepared-statements: true
+        max-open-prepared-statements: 100
+        filters: stat,wall
+        share-prepared-statements: true
+      # 配置需要的数据源
+      datasource:
+        # master为默认的数据源
+        seata_account:
+          username: root
+          password: 123456
+          url: jdbc:mysql://node1:3306/seata_account?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          druid:
+            initial-size: 5
+        seata_order:
+          username: root
+          password: 123456
+          url: jdbc:mysql://node1:3306/seata_order?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          druid:
+            initial-size: 6
+        seata_storage:
+          username: root
+          password: 123456
+          url: jdbc:mysql://node1:3306/seata_storage?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          druid:
+            initial-size: 6
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      field-strategy: not_empty
+      table-underline: true
+      db-type: mysql
+      logic-delete-value: 1 # �߼���ɾ��ֵ(Ĭ��Ϊ 1)
+      logic-not-delete-value: 0 # �߼�δɾ��ֵ(Ĭ��Ϊ 0)
+  mapper-locations: classpath:/mapper/*.xml
+  type-aliases-package: com.example.springbootseata.entity
+#seata配置,相当于registry.conf
+seata:
+  enabled: true
+  application-id: ${spring.application.name}
+  tx-service-group: my_test_tx_group
+  enable-auto-data-source-proxy: false   #一定要是false
+  service:
+    vgroup-mapping:
+      my_test_tx_group: default  #key与上面的tx-service-group的值对应
+    grouplist:
+      default: node4:8091 #seata-server地址仅file注册中心需要
+  config:
+    type: file
+  registry:
+    type: file
+##集群+nacos配置
+#seata:
+#  enabled: true
+#  enable-auto-data-source-proxy: false
+#  application-id: ${spring.application.name}
+#  tx-service-group: my_test_tx_group
+#  service:
+#    vgroup-mapping:
+#      my_test_tx_group: default
+#  config:
+#    type: nacos
+#    nacos:
+#      namespace:
+#      serverAddr: node1:1111
+#      group: SEATA_GROUP
+#  registry:
+#    type: nacos
+#    nacos:
+#      application: seata-server
+#      cluster: default
+#      group: SEATA_GROUP
+#      server-addr: node1:1111
